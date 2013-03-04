@@ -5,9 +5,9 @@ import (
 )
 
 func main() {
-	if err := initGraphic(640, 480); err != nil {
+	if err := initGraphic(600, 600); err != nil {
 		log.Fatal("Failed to init graphic:", err)
 	}
 
-	runGophers(makeGophers(2))
+	runGophers(makeGophers(9))
 }

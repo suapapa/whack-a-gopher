@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -62,7 +63,8 @@ func (g *Gopher) Run() {
 		<-g.syncC
 
 		// TODO: get Animation interval by argument
-		if time.Since(g.lastAnimTS) < time.Second {
+		duration := time.Duration(500+rand.Intn(500)) * time.Millisecond
+		if time.Since(g.lastAnimTS) < duration {
 			g.readyC <- 0
 			continue
 		}

@@ -37,9 +37,13 @@ type Gopher struct {
 	hit       bool
 	dizzyTill time.Time
 
+	poked     bool
+	popupTill time.Time
+
 	readyC chan int
 	syncC  chan time.Time
 	headC  chan bool // the hammer will come here
+	buttC  chan bool // popup if the butt poked
 }
 
 func NewGopher(x, y int16) *Gopher {

@@ -9,5 +9,5 @@ func main() {
 		log.Fatal("Failed to init graphic:", err)
 	}
 
-	runGophers()
+	runGophers(makeGophers(2))
 }

@@ -14,8 +14,6 @@ var (
 	gopherEyeX     = sdl.Load("res/gopher_xeye.png")
 
 	bg *sdl.Surface
-
-	readyC chan int
 )
 
 func initGraphic(w, h int) error {
@@ -28,8 +26,6 @@ func initGraphic(w, h int) error {
 		return errors.New(sdl.GetError())
 	}
 
-	readyC = make(chan int)
-
 	return nil
 }
 
@@ -40,7 +36,8 @@ type Gopher struct {
 	animIdx    uint64
 	lastAnimTS time.Time
 
-	syncC chan bool
+	readyC chan int
+	syncC  chan bool
 }
 
 func NewGopher(x, y int16) *Gopher {
@@ -53,6 +50,7 @@ func NewGopher(x, y int16) *Gopher {
 		rectEyeR: &sdl.Rect{x + 18, y, 0, 0},
 	}
 
+	g.readyC = make(chan int)
 	g.syncC = make(chan bool)
 	g.lastAnimTS = time.Now()
 
@@ -65,7 +63,7 @@ func (g *Gopher) Run() {
 
 		// TODO: get Animation interval by argument
 		if time.Since(g.lastAnimTS) < time.Second {
-			readyC <- 0
+			g.readyC <- 0
 			continue
 		}
 		g.lastAnimTS = time.Now()
@@ -86,14 +84,26 @@ func (g *Gopher) Run() {
 			bg.Blit(g.rectEyeR, g.eye, nil)
 		}
 
-		readyC <- 1
+		g.readyC <- 1
 	}
 }
 
-func runGophers() {
-	g := NewGopher(0, 0)
-	go g.Run()
-	g.syncC <- true
+func makeGophers(n int) []*Gopher {
+	gs := make([]*Gopher, n)
+	for i := 0; i < len(gs); i++ {
+		x := (i % 3) * 200
+		y := (i / 3) * 200
+		gs[i] = NewGopher(int16(x), int16(y))
+	}
+
+	return gs
+}
+
+func runGophers(gs []*Gopher) {
+	for _, g := range gs {
+		go g.Run()
+		g.syncC <- true
+	}
 
 	fpsTker := time.NewTicker(time.Second / 30) // 30fps
 	var dirtyCnt int
@@ -101,12 +111,16 @@ func runGophers() {
 		dirtyCnt = 0
 		select {
 		case <-fpsTker.C:
-			dirtyCnt += (<-readyC)
+			for _, g := range gs {
+				dirtyCnt += (<-g.readyC)
+			}
 			if dirtyCnt > 0 {
-				log.Println("flip")
+				log.Printf("flip (dirty=%d)\n", dirtyCnt)
 				bg.Flip()
 			}
-			g.syncC <- true
+			for _, g := range gs {
+				g.syncC <- true
+			}
 		}
 	}
 }

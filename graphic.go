@@ -107,12 +107,14 @@ func (g *Gopher) Run() {
 	}
 }
 
-func makeGophers(n int, n4W, n4H int) []*Gopher {
-	gs := make([]*Gopher, n)
-	for i := 0; i < len(gs); i++ {
-		x := (i % n4W) * GOPHER_W
-		y := (i / n4H) * GOPHER_H
-		gs[i] = NewGopher(int16(x), int16(y))
+func makeGophers(n4W, n4H int) []*Gopher {
+	gs := make([]*Gopher, n4W*n4H)
+	var i, x, y int16
+	for y = 0; y < int16(n4H); y++ {
+		for x = 0; x < int16(n4W); x++ {
+			gs[i] = NewGopher(x*GOPHER_W, y*GOPHER_H)
+			i += 1
+		}
 	}
 
 	return gs

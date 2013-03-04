@@ -16,15 +16,14 @@ func main() {
 		log.Fatal("Failed to init graphic:", err)
 	}
 
-	gophers := makeGophers((GAME_W/GOPHER_W)*(GAME_H/GOPHER_H),
-		GAME_W/GOPHER_W, GAME_H/GOPHER_H)
+	gophers := makeGophers(GAME_W/GOPHER_W, GAME_H/GOPHER_H)
 	go runGophers(gophers)
 
 	mouseC := make(chan Point, 20)
 	go runMouseListener(mouseC)
 	for {
 		p := <-mouseC
-		hammerIdx := p.X/GOPHER_W + (p.Y / GOPHER_H * (GAME_W/GOPHER_W))
+		hammerIdx := p.X/GOPHER_W + (p.Y / GOPHER_H * (GAME_W / GOPHER_W))
 		log.Println("Hammer to", hammerIdx)
 		gophers[hammerIdx].headC <- true
 	}

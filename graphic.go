@@ -71,6 +71,16 @@ func (g *Gopher) Run() {
 				}
 			}
 
+			if g.hit {
+				g.hit = false
+				bg.FillRect(g.rect, 0)
+				bg.Blit(g.rect, gopherBody, nil)
+				bg.Blit(g.rect, gopherEyeX, nil)
+				g.dizzyTill = now.Add(time.Second)
+				g.readyC <- 1
+				continue
+			}
+
 			duration := time.Duration(250+rand.Intn(250)) * time.Millisecond
 			if time.Since(g.lastAnimTS) < duration {
 				g.readyC <- 0
@@ -80,14 +90,6 @@ func (g *Gopher) Run() {
 
 			bg.FillRect(g.rect, 0)
 			bg.Blit(g.rect, gopherBody, nil)
-
-			if g.hit {
-				g.hit = false
-				bg.Blit(g.rect, gopherEyeX, nil)
-				g.dizzyTill = now.Add(time.Second)
-				g.readyC <- 1
-				continue
-			}
 
 			if rand.Intn(2) == 0 {
 				// XXX: Workaround for

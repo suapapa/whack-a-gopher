@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"math/rand"
+	"time"
 )
 
 const (
@@ -18,6 +20,16 @@ func main() {
 
 	gophers := makeGophers(GAME_W/GOPHER_W, GAME_H/GOPHER_H)
 	go runGophers(gophers)
+
+	go func() {
+		pokeTkr := time.NewTicker(time.Second)
+		for {
+			select {
+			case <-pokeTkr.C:
+				gophers[rand.Intn(len(gophers))].buttC <- true
+			}
+		}
+	}()
 
 	mouseC := make(chan Point, 20)
 	go runMouseListener(mouseC)

@@ -40,10 +40,11 @@ type Gopher struct {
 	poked     bool
 	popupTill time.Time
 
-	readyC chan int
-	syncC  chan time.Time
-	headC  chan bool // the hammer will come here
-	buttC  chan bool // popup if the butt poked
+	readyC chan int       // ready for flip whole screen
+	syncC  chan time.Time // start drawing
+
+	headC chan bool // the hammer will come here
+	buttC chan bool // popup if the butt poked
 }
 
 func NewGopher(x, y int16) *Gopher {
@@ -56,8 +57,10 @@ func NewGopher(x, y int16) *Gopher {
 	g.readyC = make(chan int)
 	g.syncC = make(chan time.Time)
 	g.headC = make(chan bool)
+	g.buttC = make(chan bool)
 	g.lastAnimTS = time.Unix(0, 0)
 	g.dizzyTill = time.Unix(0, 0)
+	g.popupTill = time.Unix(0, 0)
 
 	return g
 }
@@ -66,6 +69,24 @@ func (g *Gopher) Run() {
 	for {
 		select {
 		case now := <-g.syncC:
+			if g.poked {
+				g.poked = false
+				g.popupTill = now.Add(2 * time.Second)
+			}
+
+			if g.popupTill == time.Unix(0, 0) {
+				g.readyC <- 0
+				continue
+
+			} else {
+				if now.After(g.popupTill) { // hide again
+					g.popupTill = time.Unix(0, 0)
+					bg.FillRect(g.rect, 0)
+					g.readyC <- 1
+					continue
+				}
+			}
+
 			if g.dizzyTill != time.Unix(0, 0) {
 				if now.After(g.dizzyTill) {
 					g.dizzyTill = time.Unix(0, 0)
@@ -108,7 +129,12 @@ func (g *Gopher) Run() {
 			g.readyC <- 1
 
 		case <-g.headC:
-			g.hit = true
+			if g.popupTill != time.Unix(0, 0) {
+				g.hit = true
+			}
+
+		case <-g.buttC:
+			g.poked = true
 		}
 	}
 }

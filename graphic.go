@@ -30,28 +30,26 @@ func initGraphic(w, h int) error {
 }
 
 type Gopher struct {
-	body, eye, eyeX          *sdl.Surface
 	rect, rectEyeL, rectEyeR *sdl.Rect
 
 	animIdx    uint64
 	lastAnimTS time.Time
 
 	readyC chan int
-	syncC  chan bool
+	syncC  chan time.Time
+	headC  chan bool // the hammer will come here
 }
 
 func NewGopher(x, y int16) *Gopher {
 	g := &Gopher{
-		eye:      gopherEye,
-		eyeX:     gopherEyeX,
-		body:     gopherBody,
 		rect:     &sdl.Rect{x, y, 0, 0},
 		rectEyeL: &sdl.Rect{x - 10, y, 0, 0},
 		rectEyeR: &sdl.Rect{x + 18, y, 0, 0},
 	}
 
 	g.readyC = make(chan int)
-	g.syncC = make(chan bool)
+	g.syncC = make(chan time.Time)
+	g.headC = make(chan bool)
 	g.lastAnimTS = time.Now()
 
 	return g
@@ -59,7 +57,7 @@ func NewGopher(x, y int16) *Gopher {
 
 func (g *Gopher) Run() {
 	for {
-		<-g.syncC
+		now := <-g.syncC
 
 		// TODO: get Animation interval by argument
 		duration := time.Duration(500+rand.Intn(500)) * time.Millisecond
@@ -67,22 +65,20 @@ func (g *Gopher) Run() {
 			g.readyC <- 0
 			continue
 		}
-		g.lastAnimTS = time.Now()
+		g.lastAnimTS = now
 
 		bg.FillRect(g.rect, 0)
-		bg.Blit(g.rect, g.body, nil)
+		bg.Blit(g.rect, gopherBody, nil)
 
 		g.animIdx += 1
 		if g.animIdx%2 == 0 {
-			/* log.Println("L", g.rectEyeL) */
 			// XXX: Workaround for
 			// g.rectEyeL.X recoverd to 0 after Blit
 			x := g.rectEyeL.X
-			bg.Blit(g.rectEyeL, g.eye, nil)
+			bg.Blit(g.rectEyeL, gopherEye, nil)
 			g.rectEyeL.X = x
 		} else {
-			/* log.Println("R", g.rectEyeR) */
-			bg.Blit(g.rectEyeR, g.eye, nil)
+			bg.Blit(g.rectEyeR, gopherEye, nil)
 		}
 
 		g.readyC <- 1
@@ -101,9 +97,10 @@ func makeGophers(n int) []*Gopher {
 }
 
 func runGophers(gs []*Gopher) {
+	now := time.Now()
 	for _, g := range gs {
 		go g.Run()
-		g.syncC <- true
+		g.syncC <- now
 	}
 
 	fpsTker := time.NewTicker(time.Second / 30) // 30fps
@@ -116,11 +113,12 @@ func runGophers(gs []*Gopher) {
 				dirtyCnt += (<-g.readyC)
 			}
 			if dirtyCnt > 0 {
-				/* log.Printf("flip (dirty=%d)\n", dirtyCnt) */
 				bg.Flip()
 			}
+
+			now = time.Now()
 			for _, g := range gs {
-				g.syncC <- true
+				g.syncC <- now
 			}
 		}
 	}

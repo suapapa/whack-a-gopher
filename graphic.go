@@ -32,8 +32,10 @@ func initGraphic(w, h int) error {
 type Gopher struct {
 	rect, rectEyeL, rectEyeR *sdl.Rect
 
-	animIdx    uint64
 	lastAnimTS time.Time
+
+	hit       bool
+	dizzyTill time.Time
 
 	readyC chan int
 	syncC  chan time.Time
@@ -50,46 +52,66 @@ func NewGopher(x, y int16) *Gopher {
 	g.readyC = make(chan int)
 	g.syncC = make(chan time.Time)
 	g.headC = make(chan bool)
-	g.lastAnimTS = time.Now()
+	g.lastAnimTS = time.Unix(0, 0)
+	g.dizzyTill = time.Unix(0, 0)
 
 	return g
 }
 
 func (g *Gopher) Run() {
 	for {
-		now := <-g.syncC
+		select {
+		case now := <-g.syncC:
+			if g.dizzyTill != time.Unix(0, 0) {
+				if now.After(g.dizzyTill) {
+					g.dizzyTill = time.Unix(0, 0)
+				} else {
+					g.readyC <- 0
+					continue
+				}
+			}
 
-		// TODO: get Animation interval by argument
-		duration := time.Duration(500+rand.Intn(500)) * time.Millisecond
-		if time.Since(g.lastAnimTS) < duration {
-			g.readyC <- 0
-			continue
+			duration := time.Duration(250+rand.Intn(250)) * time.Millisecond
+			if time.Since(g.lastAnimTS) < duration {
+				g.readyC <- 0
+				continue
+			}
+			g.lastAnimTS = now
+
+			bg.FillRect(g.rect, 0)
+			bg.Blit(g.rect, gopherBody, nil)
+
+			if g.hit {
+				g.hit = false
+				bg.Blit(g.rect, gopherEyeX, nil)
+				g.dizzyTill = now.Add(time.Second)
+				g.readyC <- 1
+				continue
+			}
+
+			if rand.Intn(2) == 0 {
+				// XXX: Workaround for
+				// g.rectEyeL.X is recovered to 0 after Blit
+				x := g.rectEyeL.X
+				bg.Blit(g.rectEyeL, gopherEye, nil)
+				g.rectEyeL.X = x
+			} else {
+				bg.Blit(g.rectEyeR, gopherEye, nil)
+			}
+
+			g.readyC <- 1
+
+		case <-g.headC:
+			g.hit = true
 		}
-		g.lastAnimTS = now
-
-		bg.FillRect(g.rect, 0)
-		bg.Blit(g.rect, gopherBody, nil)
-
-		g.animIdx += 1
-		if g.animIdx%2 == 0 {
-			// XXX: Workaround for
-			// g.rectEyeL.X recoverd to 0 after Blit
-			x := g.rectEyeL.X
-			bg.Blit(g.rectEyeL, gopherEye, nil)
-			g.rectEyeL.X = x
-		} else {
-			bg.Blit(g.rectEyeR, gopherEye, nil)
-		}
-
-		g.readyC <- 1
 	}
 }
 
-func makeGophers(n int) []*Gopher {
+func makeGophers(n int, n4W, n4H int) []*Gopher {
 	gs := make([]*Gopher, n)
 	for i := 0; i < len(gs); i++ {
-		x := (i % 3) * 200
-		y := (i / 3) * 200
+		x := (i % n4W) * GOPHER_W
+		y := (i / n4H) * GOPHER_H
 		gs[i] = NewGopher(int16(x), int16(y))
 	}
 

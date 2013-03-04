@@ -9,5 +9,13 @@ func main() {
 		log.Fatal("Failed to init graphic:", err)
 	}
 
-	runGophers(makeGophers(9))
+	go runGophers(makeGophers(9))
+
+	mouseC := make(chan Point)
+	go runMouseListener(mouseC)
+	for {
+		p := <-mouseC
+		hammerIdx := p.X/200 + (p.Y / 200 * 3)
+		log.Println("Hammer to", hammerIdx)
+	}
 }

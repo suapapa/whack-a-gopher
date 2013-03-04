@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -117,7 +116,7 @@ func runGophers(gs []*Gopher) {
 				dirtyCnt += (<-g.readyC)
 			}
 			if dirtyCnt > 0 {
-				log.Printf("flip (dirty=%d)\n", dirtyCnt)
+				/* log.Printf("flip (dirty=%d)\n", dirtyCnt) */
 				bg.Flip()
 			}
 			for _, g := range gs {

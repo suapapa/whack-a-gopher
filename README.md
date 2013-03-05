@@ -1,9 +1,11 @@
 # whac-a-gopher: Simple game written in Go
 
-![ScreenshotOfTheGame](https://lh4.googleusercontent.com/-QqMLiacnqaE/UTRT047USNI/AAAAAAAACSA/52djbhOWATI/s625/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C+2013-03-04+16%3A55%3A08.png)
-
 This is an example project for my speak in [devfestW Korea 2013][3]
 which is about Go's power of handling concurrency.
+
+![ScreenshotOfTheGame](https://lh4.googleusercontent.com/-QqMLiacnqaE/UTRT047USNI/AAAAAAAACSA/52djbhOWATI/s625/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C+2013-03-04+16%3A55%3A08.png)
+
+[Video(youtube)](http://youtu.be/fqvJWG4cWIg)
 
 ## How to build
 

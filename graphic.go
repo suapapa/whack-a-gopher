@@ -90,6 +90,10 @@ func (g *Gopher) Run() {
 			if g.dizzyTill != time.Unix(0, 0) {
 				if now.After(g.dizzyTill) {
 					g.dizzyTill = time.Unix(0, 0)
+					g.popupTill = time.Unix(0, 0)
+					bg.FillRect(g.rect, 0)
+					g.readyC <- 1
+					continue
 				} else {
 					g.readyC <- 0
 					continue

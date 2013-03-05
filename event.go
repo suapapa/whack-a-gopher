@@ -6,6 +6,7 @@ package main
 
 import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
+	"os"
 )
 
 type Point struct {
@@ -22,6 +23,16 @@ func runMouseListener(outC chan Point) {
 				p.X, p.Y = int(e.X), int(e.Y)
 				outC <- p
 			}
+		case sdl.KeyboardEvent:
+			if e.State == 0 {
+				break
+			}
+
+			keysym := e.Keysym.Sym
+			if keysym == sdl.K_q {
+				os.Exit(0)
+			}
 		}
+
 	}
 }

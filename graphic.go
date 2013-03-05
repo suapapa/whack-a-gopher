@@ -70,81 +70,81 @@ func NewGopher(x, y int16) *Gopher {
 }
 
 func (g *Gopher) Run() {
-	for {
-		select {
-		case now := <-g.syncC:
-			if g.poked {
-				g.poked = false
-				g.popupTill = now.Add(2 * time.Second)
-			}
+GOPHER_LOOP:
+	select {
+	case now := <-g.syncC:
+		if g.poked {
+			g.poked = false
+			g.popupTill = now.Add(2 * time.Second)
+		}
 
-			if g.popupTill == time.Unix(0, 0) {
-				g.readyC <- 0
-				continue
+		if g.popupTill == time.Unix(0, 0) {
+			g.readyC <- 0
+			break
 
-			} else {
-				if now.After(g.popupTill) { // hide again
-					g.popupTill = time.Unix(0, 0)
-					bg.FillRect(g.rect, 0)
-					g.readyC <- 1
-					continue
-				}
-			}
-
-			if g.dizzyTill != time.Unix(0, 0) {
-				if now.After(g.dizzyTill) {
-					g.dizzyTill = time.Unix(0, 0)
-					g.popupTill = time.Unix(0, 0)
-					bg.FillRect(g.rect, 0)
-					g.readyC <- 1
-					continue
-				} else {
-					g.readyC <- 0
-					continue
-				}
-			}
-
-			if g.hit {
-				g.hit = false
+		} else {
+			if now.After(g.popupTill) { // hide again
+				g.popupTill = time.Unix(0, 0)
 				bg.FillRect(g.rect, 0)
-				bg.Blit(g.rect, gopherBody, nil)
-				bg.Blit(g.rect, gopherEyeX, nil)
-				g.dizzyTill = now.Add(time.Second)
 				g.readyC <- 1
-				continue
+				break
 			}
+		}
 
-			duration := time.Duration(250+rand.Intn(250)) * time.Millisecond
-			if time.Since(g.lastAnimTS) < duration {
+		if g.dizzyTill != time.Unix(0, 0) {
+			if now.After(g.dizzyTill) {
+				g.dizzyTill = time.Unix(0, 0)
+				g.popupTill = time.Unix(0, 0)
+				bg.FillRect(g.rect, 0)
+				g.readyC <- 1
+				break
+			} else {
 				g.readyC <- 0
-				continue
+				break
 			}
-			g.lastAnimTS = now
+		}
 
+		if g.hit {
+			g.hit = false
 			bg.FillRect(g.rect, 0)
 			bg.Blit(g.rect, gopherBody, nil)
-
-			if rand.Intn(2) == 0 {
-				// XXX: Workaround for
-				// g.rectEyeL.X is recovered to 0 after Blit
-				x := g.rectEyeL.X
-				bg.Blit(g.rectEyeL, gopherEye, nil)
-				g.rectEyeL.X = x
-			} else {
-				bg.Blit(g.rectEyeR, gopherEye, nil)
-			}
-
+			bg.Blit(g.rect, gopherEyeX, nil)
+			g.dizzyTill = now.Add(time.Second)
 			g.readyC <- 1
-
-		case <-g.headC:
-			if g.popupTill != time.Unix(0, 0) {
-				g.hit = true
-			}
-
-		case <-g.buttC:
-			g.poked = true
+			break
 		}
+
+		duration := time.Duration(250+rand.Intn(250)) * time.Millisecond
+		if time.Since(g.lastAnimTS) < duration {
+			g.readyC <- 0
+			break
+		}
+		g.lastAnimTS = now
+
+		bg.FillRect(g.rect, 0)
+		bg.Blit(g.rect, gopherBody, nil)
+
+		if rand.Intn(2) == 0 {
+			// XXX: Workaround for
+			// g.rectEyeL.X is recovered to 0 after Blit
+			x := g.rectEyeL.X
+			bg.Blit(g.rectEyeL, gopherEye, nil)
+			g.rectEyeL.X = x
+		} else {
+			bg.Blit(g.rectEyeR, gopherEye, nil)
+		}
+
+		g.readyC <- 1
+
+	case <-g.headC:
+		if g.popupTill != time.Unix(0, 0) {
+			g.hit = true
+		}
+
+	case <-g.buttC:
+		g.poked = true
 	}
+	goto GOPHER_LOOP
 }
 
 func makeGophers(n4W, n4H int) []*Gopher {
@@ -169,21 +169,19 @@ func runGophers(gs []*Gopher) {
 
 	fpsTker := time.NewTicker(time.Second / 30) // 30fps
 	var dirtyCnt int
+	dirtyCnt = 0
 	for {
-		dirtyCnt = 0
-		select {
-		case <-fpsTker.C:
-			for _, g := range gs {
-				dirtyCnt += (<-g.readyC)
-			}
-			if dirtyCnt > 0 {
-				bg.Flip()
-			}
+		<-fpsTker.C
+		for _, g := range gs {
+			dirtyCnt += (<-g.readyC)
+		}
+		if dirtyCnt > 0 {
+			bg.Flip()
+		}
 
-			now = time.Now()
-			for _, g := range gs {
-				g.syncC <- now
-			}
+		now = time.Now()
+		for _, g := range gs {
+			g.syncC <- now
 		}
 	}
 }

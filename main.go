@@ -28,12 +28,10 @@ func main() {
 	runPoker := func(d time.Duration) {
 		pokeTkr := time.NewTicker(d)
 		for {
-			select {
-			case <-pokeTkr.C:
-				pokeIdx := rand.Intn(len(gophers))
-				log.Println("Poke ", pokeIdx)
-				gophers[pokeIdx].buttC <- true
-			}
+			<-pokeTkr.C
+			pokeIdx := rand.Intn(len(gophers))
+			log.Println("Poke ", pokeIdx)
+			gophers[pokeIdx].buttC <- true
 		}
 	}
 

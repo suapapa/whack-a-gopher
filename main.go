@@ -21,15 +21,21 @@ func main() {
 	gophers := makeGophers(GAME_W/GOPHER_W, GAME_H/GOPHER_H)
 	go runGophers(gophers)
 
-	go func() {
-		pokeTkr := time.NewTicker(time.Second)
+	runPoker := func(d time.Duration) {
+		pokeTkr := time.NewTicker(d)
 		for {
 			select {
 			case <-pokeTkr.C:
-				gophers[rand.Intn(len(gophers))].buttC <- true
+				pokeIdx := rand.Intn(len(gophers))
+				log.Println("Poke ", pokeIdx)
+				gophers[pokeIdx].buttC <- true
 			}
 		}
-	}()
+	}
+
+	go runPoker(3 * time.Second)
+	go runPoker(time.Second)
+	go runPoker(time.Second / 2)
 
 	mouseC := make(chan Point, 20)
 	go runMouseListener(mouseC)

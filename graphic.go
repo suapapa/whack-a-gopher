@@ -12,11 +12,6 @@ import (
 )
 
 var (
-	gopherBody     = sdl.Load("res/gopher_body_normal.png")
-	gopherHulkBody = sdl.Load("res/gopher_body_hulk.png")
-	gopherEye      = sdl.Load("res/gopher_doteye.png")
-	gopherEyeX     = sdl.Load("res/gopher_xeye.png")
-
 	bg *sdl.Surface
 )
 
@@ -75,6 +70,11 @@ func NewGopher(x, y int16) *Gopher {
 }
 
 func (g *Gopher) Run() {
+	// load images
+	gopherEye := loadImage(gopherEyeFile)
+	gopherEyeX := loadImage(gopherEyeXFile)
+	gopherBody := loadImage(gopherBodyFile)
+
 GOPHER_LOOP:
 	select {
 	case now := <-g.syncC:

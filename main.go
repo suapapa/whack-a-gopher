@@ -18,11 +18,14 @@ const (
 )
 
 func main() {
-	if err := initGraphic(GAME_W, GAME_H); err != nil {
+	log.Println("opts =", opts)
+	if err := initGraphic(opts.scrnW, opts.scrnH, opts.fullscreen); err != nil {
 		log.Fatal("Failed to init graphic:", err)
 	}
 
-	gophers := makeGophers(GAME_W/GOPHER_W, GAME_H/GOPHER_H)
+	n4W, n4H := opts.scrnW/GOPHER_W, opts.scrnH/GOPHER_H
+	gophers := makeGophers(n4W, n4H)
+	log.Printf("%d gophers ready\n", len(gophers))
 	go runGophers(gophers)
 
 	runPoker := func(d time.Duration) {
@@ -43,7 +46,7 @@ func main() {
 	go runMouseListener(mouseC)
 	for {
 		p := <-mouseC
-		hammerIdx := p.X/GOPHER_W + (p.Y / GOPHER_H * (GAME_W / GOPHER_W))
+		hammerIdx := p.X/GOPHER_W + (p.Y / GOPHER_H * n4W)
 		log.Println("Hammer to", hammerIdx)
 		gophers[hammerIdx].headC <- true
 	}

@@ -20,12 +20,17 @@ var (
 	bg *sdl.Surface
 )
 
-func initGraphic(w, h int) error {
+func initGraphic(w, h uint, fullscreen bool) error {
 	if sdl.Init(sdl.INIT_EVERYTHING) != 0 {
 		return errors.New(sdl.GetError())
 	}
 
-	bg = sdl.SetVideoMode(w, h, 32, sdl.RESIZABLE)
+	var vmFlags uint32
+	if fullscreen {
+		vmFlags = sdl.FULLSCREEN
+	}
+
+	bg = sdl.SetVideoMode(int(w), int(h), 32, vmFlags)
 	if bg == nil {
 		return errors.New(sdl.GetError())
 	}
@@ -147,12 +152,12 @@ GOPHER_LOOP:
 	goto GOPHER_LOOP
 }
 
-func makeGophers(n4W, n4H int) []*Gopher {
+func makeGophers(n4W, n4H uint) []*Gopher {
 	gs := make([]*Gopher, n4W*n4H)
-	var i, x, y int16
-	for y = 0; y < int16(n4H); y++ {
-		for x = 0; x < int16(n4W); x++ {
-			gs[i] = NewGopher(x*GOPHER_W, y*GOPHER_H)
+	var i, x, y uint
+	for y = 0; y < n4H; y++ {
+		for x = 0; x < n4W; x++ {
+			gs[i] = NewGopher(int16(x*GOPHER_W), int16(y*GOPHER_H))
 			i += 1
 		}
 	}

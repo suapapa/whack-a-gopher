@@ -10,7 +10,7 @@ import (
 )
 
 type Point struct {
-	X, Y int
+	X, Y uint
 }
 
 func runMouseListener(outC chan Point) {
@@ -20,7 +20,7 @@ func runMouseListener(outC chan Point) {
 		switch e := _event.(type) {
 		case sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
-				p.X, p.Y = int(e.X), int(e.Y)
+				p.X, p.Y = uint(e.X), uint(e.Y)
 				outC <- p
 			}
 		case sdl.KeyboardEvent:

@@ -7,21 +7,42 @@ package main
 import (
 	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"log"
+	"os"
+	"path/filepath"
 )
 
 var (
-	gopherBodyFile     = "gopher_body_normal.png"
-	gopherHulkBodyFile = "gopher_body_hulk.png"
-	gopherEyeFile      = "gopher_doteye.png"
-	gopherEyeXFile     = "gopher_xeye.png"
+	pkgPath       = "github.com/suapapa/whac-a-gopher"
+	resCandidates = []string{
+		"res",
+		filepath.Join(os.Getenv("GOPATH"), "src", pkgPath, "res"),
+		filepath.Join(os.Getenv("GOROOT"), "src", "pkg", pkgPath, "res"),
+	}
 )
 
-func loadImage(fn string) *sdl.Surface {
-	// TODO: fix to also find image from $GOPATH.
-	if s := sdl.Load("res/" + fn); s != nil {
+func loadImage(filename string) *sdl.Surface {
+	// search res directory in following order
+	// - ./res/
+	// - $(GOPATH)/src/github.com/suapapa/whac-a-gopher/res/
+	// - $(GOROOT)/src/pkg/github.com/suapapa/whac-a-gopher/res/
+	var imagePath string
+	for _, d := range resCandidates {
+		tryPath := filepath.Join(d, filename)
+		if _, err := os.Stat(tryPath); err == nil {
+			imagePath = tryPath
+			break
+		}
+	}
+
+	if imagePath == "" {
+		log.Fatalf("failed to find image, %s\n", imagePath)
+	}
+
+	if s := sdl.Load(imagePath); s != nil {
+		log.Println(imagePath, "loaded")
 		return s
 	}
 
-	log.Fatalf("failed to load image, %s\n", fn)
+	log.Fatalf("failed to load image, %s\n", imagePath)
 	return nil
 }

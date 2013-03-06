@@ -13,6 +13,10 @@ import (
 
 var (
 	bg *sdl.Surface
+
+	gopherEye  = loadImage("gopher_doteye.png")
+	gopherEyeX = loadImage("gopher_xeye.png")
+	gopherBody = loadImage("gopher_body_normal.png")
 )
 
 func initGraphic(w, h uint, fullscreen bool) error {
@@ -70,11 +74,6 @@ func NewGopher(x, y int16) *Gopher {
 }
 
 func (g *Gopher) Run() {
-	// load images
-	gopherEye := loadImage(gopherEyeFile)
-	gopherEyeX := loadImage(gopherEyeXFile)
-	gopherBody := loadImage(gopherBodyFile)
-
 GOPHER_LOOP:
 	select {
 	case now := <-g.syncC:

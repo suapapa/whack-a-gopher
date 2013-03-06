@@ -34,6 +34,8 @@ func initGraphic(w, h uint, fullscreen bool) error {
 		return errors.New(sdl.GetError())
 	}
 
+	sdl.WM_SetCaption("whac-a-gopher", "")
+
 	return nil
 }
 

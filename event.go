@@ -15,24 +15,27 @@ type Point struct {
 
 func runMouseListener(outC chan Point) {
 	var p Point
-	for {
-		_event := <-sdl.Events
-		switch e := _event.(type) {
-		case sdl.MouseButtonEvent:
-			if e.Type == sdl.MOUSEBUTTONDOWN {
-				p.X, p.Y = uint(e.X), uint(e.Y)
-				outC <- p
-			}
-		case sdl.KeyboardEvent:
-			if e.State == 0 {
-				break
-			}
 
-			keysym := e.Keysym.Sym
-			if keysym == sdl.K_q {
-				os.Exit(0)
-			}
+EVENT_LOOP:
+	_event := <-sdl.Events
+	switch e := _event.(type) {
+	case sdl.MouseButtonEvent:
+		if e.Type == sdl.MOUSEBUTTONDOWN {
+			p.X, p.Y = uint(e.X), uint(e.Y)
+			outC <- p
+		}
+	case sdl.KeyboardEvent:
+		if e.State == 0 {
+			break
 		}
 
+		keysym := e.Keysym.Sym
+		if keysym == sdl.K_q {
+			os.Exit(0)
+		}
+	case sdl.QuitEvent:
+		os.Exit(0)
 	}
+
+	goto EVENT_LOOP
 }

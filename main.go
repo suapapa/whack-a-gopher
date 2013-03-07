@@ -17,6 +17,10 @@ const (
 	GOPHER_H = 200
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	log.Println("opts =", opts)
 	if err := initGraphic(opts.scrnW, opts.scrnH, opts.fullscreen); err != nil {

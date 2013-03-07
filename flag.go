@@ -15,10 +15,11 @@ const (
 	DFLT_SCRN_W   = 600
 	DFLT_SCRN_H   = 600
 	DFLT_FULLSCRN = false
+	DFLT_FPS      = 30
 )
 
 var (
-	opts  Options
+	opts  *Options
 	flags []string
 )
 
@@ -29,6 +30,7 @@ func init() {
 type Options struct {
 	scrnW, scrnH uint
 	fullscreen   bool
+	maxFps       uint
 }
 
 func setupFlags(o *Options) *flag.FlagSet {
@@ -38,6 +40,7 @@ func setupFlags(o *Options) *flag.FlagSet {
 	fs.UintVar(&o.scrnW, "w", DFLT_SCRN_W, "default screen width")
 	fs.UintVar(&o.scrnH, "h", DFLT_SCRN_H, "default screen height")
 	fs.BoolVar(&o.fullscreen, "f", DFLT_FULLSCRN, "fullscreen")
+	fs.UintVar(&o.maxFps, "fps", DFLT_FPS, "max fps")
 
 	fs.Usage = func() {
 		fmt.Printf("Usage: %s [options]\n", prgName)
@@ -59,10 +62,10 @@ func verifyFlags(o *Options, fs *flag.FlagSet) {
 	}
 }
 
-func parseFlags() (Options, []string) {
+func parseFlags() (*Options, []string) {
 	var o Options
 	fs := setupFlags(&o)
 	fs.Parse(os.Args[1:])
 	verifyFlags(&o, fs)
-	return o, fs.Args()
+	return &o, fs.Args()
 }

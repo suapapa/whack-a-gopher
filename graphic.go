@@ -173,7 +173,7 @@ func runGophers(gs []*Gopher) {
 		g.syncC <- now
 	}
 
-	fpsTker := time.NewTicker(time.Second / 30) // 30fps
+	fpsTker := time.NewTicker(time.Second / time.Duration(opts.maxFps))
 	var dirtyCnt int
 	dirtyCnt = 0
 	for {

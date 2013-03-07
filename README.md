@@ -17,31 +17,27 @@ Install dependency packages:
 
     $ sudo apt-get install libsdl1.2-dev libsdl-mixer* libsdl-image* libsdl-ttf*
 
-On under Ubuntu 12.10, need to make `SDL_ttf.pc` to `/usr/lib/pkgconfig` with
-following context:
-
-    prefix=@prefix@
-    exec_prefix=@exec_prefix@
-    libdir=@libdir@
-    includedir=@includedir@
-
-    Name: SDL_ttf
-    Description: ttf library for Simple DirectMedia Layer with FreeType 2 support
-    Version: @VERSION@
-    Requires: sdl >= @SDL_VERSION@
-    Libs: -L${libdir} -lSDL_ttf
-    Cflags: -I${includedir}/SDL
-
+On under Ubuntu 12.10, you might make some `.pc`s manunually.
 [Read more][2] about this issue.
 
-### Build and Install
+### Download, Build and Install
 
-    $ go get
-    $ go build
+    $ go get github.com/suapapa/whac-a-gopher
 
-## Usage
+> The executable is created in $GOPATH/bin/
 
-    $ ./whac-a-gopher
+## Run
+
+Run in default settings, 9 gophers in window mode.
+
+    $ whac-a-gopher
+
+Try various combinations of options. For example, 45 gophers in FHD.
+
+    $ whac-a-gopher -w 1920 -h 1080 -f true
+
+And refer help, `-help` for more.
+
 
 [1]:http://golang.org/doc/install
 [2]:https://github.com/banthar/Go-SDL/issues/35#issuecomment-3597261

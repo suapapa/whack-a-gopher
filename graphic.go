@@ -35,6 +35,11 @@ func initGraphic(w, h uint, fullscreen bool) error {
 
 	sdl.WM_SetCaption("whac-a-gopher", "")
 
+	// Load images
+	gopherEye = loadImage("gopher_doteye.png")
+	gopherEyeX = loadImage("gopher_xeye.png")
+	gopherBody = loadImage("gopher_body_normal.png")
+
 	return nil
 }
 
@@ -75,11 +80,6 @@ func NewGopher(x, y int16) *Gopher {
 }
 
 func (g *Gopher) Run() {
-	// Load images
-	gopherEye = loadImage("gopher_doteye.png")
-	gopherEyeX = loadImage("gopher_xeye.png")
-	gopherBody = loadImage("gopher_body_normal.png")
-
 GOPHER_LOOP:
 	select {
 	case now := <-g.syncC:

@@ -13,7 +13,7 @@ type Point struct {
 	X, Y uint
 }
 
-func runMouseListener(outC chan Point) {
+func eventLoop(mouseC chan Point) {
 	var p Point
 
 EVENT_LOOP:
@@ -22,7 +22,7 @@ EVENT_LOOP:
 	case sdl.MouseButtonEvent:
 		if e.Type == sdl.MOUSEBUTTONDOWN {
 			p.X, p.Y = uint(e.X), uint(e.Y)
-			outC <- p
+			mouseC <- p
 		}
 	case sdl.KeyboardEvent:
 		if e.State == 0 {

@@ -30,9 +30,9 @@ func main() {
 	n4W, n4H := opts.scrnW/GOPHER_W, opts.scrnH/GOPHER_H
 	gophers := makeGophers(n4W, n4H)
 	log.Printf("%d gophers ready\n", len(gophers))
-	go runGophers(gophers)
+	go graphicLoop(gophers)
 
-	runPoker := func(d time.Duration) {
+	pokerLoop := func(d time.Duration) {
 		pokeTkr := time.NewTicker(d)
 		for {
 			<-pokeTkr.C
@@ -42,12 +42,12 @@ func main() {
 		}
 	}
 
-	go runPoker(3 * time.Second)
-	go runPoker(time.Second)
-	go runPoker(time.Second / 2)
+	go pokerLoop(3 * time.Second)
+	go pokerLoop(time.Second)
+	go pokerLoop(time.Second / 2)
 
 	mouseC := make(chan Point, 20)
-	go runMouseListener(mouseC)
+	go eventLoop(mouseC)
 	for {
 		p := <-mouseC
 		hammerIdx := p.X/GOPHER_W + (p.Y / GOPHER_H * n4W)

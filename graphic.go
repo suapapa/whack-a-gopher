@@ -79,7 +79,7 @@ func NewGopher(x, y int16) *Gopher {
 	return g
 }
 
-func (g *Gopher) Run() {
+func (g *Gopher) Loop() {
 GOPHER_LOOP:
 	select {
 	case now := <-g.syncC:
@@ -170,10 +170,10 @@ func makeGophers(n4W, n4H uint) []*Gopher {
 	return gs
 }
 
-func runGophers(gs []*Gopher) {
+func graphicLoop(gs []*Gopher) {
 	now := time.Now()
 	for _, g := range gs {
-		go g.Run()
+		go g.Loop()
 		g.syncC <- now
 	}
 

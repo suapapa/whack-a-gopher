@@ -44,6 +44,8 @@ func main() {
 	go pokerLoop(time.Second)
 	go pokerLoop(time.Second / 2)
 
+	go debugFpsLoop()
+
 	mouseC := make(chan Point, 20)
 	go eventLoop(mouseC)
 	for {

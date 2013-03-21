@@ -187,6 +187,7 @@ func graphicLoop(gs []*Gopher) {
 		}
 		if dirtyCnt > 0 {
 			bg.Flip()
+			updateFrameC <- true
 		}
 
 		now = time.Now()

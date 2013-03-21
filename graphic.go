@@ -179,7 +179,6 @@ func graphicLoop(gs []*Gopher) {
 
 	fpsTker := time.NewTicker(time.Second / time.Duration(opts.maxFps))
 	var dirtyCnt int
-	dirtyCnt = 0
 	for {
 		<-fpsTker.C
 		for _, g := range gs {
@@ -187,7 +186,8 @@ func graphicLoop(gs []*Gopher) {
 		}
 		if dirtyCnt > 0 {
 			bg.Flip()
-			updateFrameC <- true
+			notiFrameC <- true
+			dirtyCnt = 0
 		}
 
 		now = time.Now()

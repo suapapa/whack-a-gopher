@@ -6,11 +6,11 @@ import (
 )
 
 var (
-	updateFrameC chan bool
+	notiFrameC chan bool
 )
 
 func init() {
-	updateFrameC = make(chan bool)
+	notiFrameC = make(chan bool)
 }
 
 func debugFpsLoop() {
@@ -18,7 +18,7 @@ func debugFpsLoop() {
 	printFpsIntervalTkr := time.NewTicker(3 * time.Second)
 DEBUG_FPS_LOOP:
 	select {
-	case <-updateFrameC:
+	case <-notiFrameC:
 		frameCnt += 1
 	case <-printFpsIntervalTkr.C:
 		log.Println("fps =", frameCnt/3)

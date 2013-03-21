@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	GAME_W   = 600
-	GAME_H   = 600
 	GOPHER_W = 200
 	GOPHER_H = 200
 )

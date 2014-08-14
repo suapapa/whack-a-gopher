@@ -6,9 +6,10 @@ package main
 
 import (
 	"errors"
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"math/rand"
 	"time"
+
+	"github.com/banthar/Go-SDL/sdl"
 )
 
 var (

@@ -5,8 +5,10 @@
 package main
 
 import (
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 	"os"
+	"time"
+
+	"github.com/banthar/Go-SDL/sdl"
 )
 
 type Point struct {
@@ -15,16 +17,14 @@ type Point struct {
 
 func eventLoop(mouseC chan Point) {
 	var p Point
-
-EVENT_LOOP:
-	_event := <-sdl.Events
-	switch e := _event.(type) {
-	case sdl.MouseButtonEvent:
+EVENTLOOP:
+	switch e := sdl.PollEvent().(type) {
+	case *sdl.MouseButtonEvent:
 		if e.Type == sdl.MOUSEBUTTONDOWN {
 			p.X, p.Y = uint(e.X), uint(e.Y)
 			mouseC <- p
 		}
-	case sdl.KeyboardEvent:
+	case *sdl.KeyboardEvent:
 		if e.State == 0 {
 			break
 		}
@@ -33,9 +33,10 @@ EVENT_LOOP:
 		if keysym == sdl.K_q {
 			os.Exit(0)
 		}
-	case sdl.QuitEvent:
+	case *sdl.QuitEvent:
 		os.Exit(0)
 	}
+	time.Sleep(1 * time.Millisecond)
+	goto EVENTLOOP
 
-	goto EVENT_LOOP
 }

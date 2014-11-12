@@ -6,7 +6,7 @@ package main
 
 import (
 	"os"
-	"time"
+	"runtime"
 
 	"github.com/banthar/Go-SDL/sdl"
 )
@@ -36,7 +36,8 @@ EVENTLOOP:
 	case *sdl.QuitEvent:
 		os.Exit(0)
 	}
-	time.Sleep(1 * time.Millisecond)
+
+	runtime.Gosched()
 	goto EVENTLOOP
 
 }

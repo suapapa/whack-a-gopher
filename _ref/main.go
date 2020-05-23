@@ -28,7 +28,9 @@ const (
 )
 
 var (
-	images map[string]js.Value
+	images   map[string]js.Value
+	mousePos point
+	n4W, n4H int
 )
 
 func main() {
@@ -53,24 +55,43 @@ func main() {
 		images[key].Set("src", "data:image/png;base64,"+loadImage(file))
 	}
 
+	mouseClickCh := make(chan point, 10)
+
+	mouseClickEvt := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		e := args[0]
+		mousePos.x = e.Get("clientX").Float()
+		mousePos.y = e.Get("clientY").Float()
+		mouseClickCh <- mousePos
+		return nil
+	})
+	defer mouseClickEvt.Release()
+	doc.Call("addEventListener", "click", mouseClickEvt)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	var gophers []*Gopher
 	var gopherPos []point
 	gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
+	go func() {
+		for {
+			p := <-mouseClickCh
+			hammerIdx := int(p.x)/GOPHER_W + (int(p.y) / GOPHER_H * n4W)
+			log.Printf("mouse click: %v, %d", p, hammerIdx)
+		}
+	}()
 
 	var renderFrame js.Func
 	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// // Handle window resizing
-		curBodyW := js.Global().Get("innerWidth").Float() * 0.9
-		curBodyH := js.Global().Get("innerHeight").Float() * 0.9
-		if curBodyW != bodyW || curBodyH != bodyH {
-			bodyW, bodyH = curBodyW, curBodyH
-			cvs.Set("width", bodyW)
-			cvs.Set("height", bodyH)
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
-			gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
-		}
+		// curBodyW := js.Global().Get("innerWidth").Float() * 0.9
+		// curBodyH := js.Global().Get("innerHeight").Float() * 0.9
+		// if curBodyW != bodyW || curBodyH != bodyH {
+		// 	bodyW, bodyH = curBodyW, curBodyH
+		// 	cvs.Set("width", bodyW)
+		// 	cvs.Set("height", bodyH)
+		// 	cancel()
+		// 	ctx, cancel = context.WithCancel(context.Background())
+		// 	gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
+		// }
 
 		drawGophers(cvsCtx, gopherPos, gophers)
 
@@ -87,7 +108,7 @@ func main() {
 }
 
 func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher, []point) {
-	n4W, n4H := int(cvsW)/GOPHER_W, int(cvsH)/GOPHER_H
+	n4W, n4H = int(cvsW)/GOPHER_W, int(cvsH)/GOPHER_H
 	gophers := make([]*Gopher, n4W*n4H)
 	positions := make([]point, len(gophers))
 	var i, x, y int
@@ -106,7 +127,7 @@ func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher
 }
 
 func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {
-	log.Println("drawGophers: len = ", len(gs))
+	// log.Println("drawGophers: len = ", len(gs))
 	for i, g := range gs {
 		drawGopher(cvsCtx, ps[i], g)
 	}

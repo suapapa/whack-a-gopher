@@ -31,15 +31,15 @@ func init() {
 
 func main() {
 	doc := js.Global().Get("document")
-	canvas := doc.Call("getElementById", "canvas")
-	// bodyW := doc.Get("body").Get("clientWidth").Float()
-	// bodyH := doc.Get("body").Get("clientHeight").Float()
+	cvs := doc.Call("getElementById", "canvas")
+	// dispW := js.Global().Get("innerWidth").Float() * 0.9
+	// dispH := js.Global().Get("innerHeight").Float() * 0.9
+	// log.Println(dispW, dispH)
 	bodyW := js.Global().Get("innerWidth").Float() * 0.9
 	bodyH := js.Global().Get("innerHeight").Float() * 0.9
-	log.Println(bodyW, bodyH)
-	canvas.Set("width", bodyW)
-	canvas.Set("height", bodyH)
-	ctx := canvas.Call("getContext", "2d")
+	cvs.Set("width", bodyW)
+	cvs.Set("height", bodyH)
+	ctx := cvs.Call("getContext", "2d")
 
 	files := []string{
 		"/data/gopher_body_normal.png",
@@ -54,30 +54,43 @@ func main() {
 		images[key].Set("src", "data:image/png;base64,"+loadImage(file))
 	}
 
-	// canvas.Call("addEventListener", "click", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	// 	js.Global().Get("window").Call("alert", "Don't click me!")
-	// 	return nil
-	// }))
-
 	n := 0
-	js.Global().Call("setInterval", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		drawGopher(ctx, 0, 0)
+	var renderFrame js.Func
+	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		// Handle window resizing
+		curBodyW := js.Global().Get("innerWidth").Float() * 0.9
+		curBodyH := js.Global().Get("innerHeight").Float() * 0.9
+		if curBodyW != bodyW || curBodyH != bodyH {
+			bodyW, bodyH = curBodyW, curBodyH
+			cvs.Set("width", bodyW)
+			cvs.Set("height", bodyH)
+			log.Println("cvs WxH =", bodyW, bodyH)
+		}
+		ctx.Call("clearRect", 0, 0, bodyW, bodyH)
+
+		drawGopher(ctx, n*200, 0)
 		n = 1 - n
+
+		log.Println("call of renderFrame")
+		js.Global().Call("requestAnimationFrame", renderFrame)
 		return nil
-	}), js.ValueOf(50))
+	})
+	defer renderFrame.Release()
+
+	log.Println("first call of renderFrame")
+	js.Global().Call("requestAnimationFrame", renderFrame)
 
 	select {}
 }
 
-func drawGopher(cctx js.Value, x, y int) {
-	cctx.Call("clearRect", x, y, 200, 200)
-	cctx.Call("drawImage", images["gopher_body_normal"], x, y)
+func drawGopher(ctx js.Value, x, y int) {
+	ctx.Call("clearRect", x, y, 200, 200)
+	ctx.Call("drawImage", images["gopher_body_normal"], x, y)
 	if r.Intn(2) != 0 {
-		cctx.Call("drawImage", images["gopher_doteye"], x-10, y)
+		ctx.Call("drawImage", images["gopher_doteye"], x-10, y)
 	} else {
-		cctx.Call("drawImage", images["gopher_doteye"], x+10, y)
+		ctx.Call("drawImage", images["gopher_doteye"], x+10, y)
 	}
-
 }
 
 func loadImage(path string) string {

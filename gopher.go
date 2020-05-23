@@ -44,6 +44,7 @@ type Gopher struct {
 	eye                   EyeShape
 	HeadCh, ButtCh        chan struct{}
 	dizzyUntil, peakUntil time.Time
+	rollEyeUntil          time.Time
 	wg                    sync.WaitGroup
 	sync.RWMutex          // Lock for status and eye
 }
@@ -87,15 +88,18 @@ loop:
 			g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
 		}
 	case <-g.ButtCh:
+		now := time.Now()
 		if g.Status() == Hide {
 			g.Lock()
 			g.status = Peak
 			g.eye = EyeShape(1 + r.Intn(2))
+			g.rollEyeUntil = now.Add(time.Duration(r.Intn(500)) * time.Millisecond)
+			g.peakUntil = now.Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
 			g.Unlock()
-			g.peakUntil = time.Now().Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
 		}
 	default:
 	}
+	// runtime.Gosched()
 	time.Sleep(20 * time.Millisecond)
 	goto loop
 }
@@ -117,14 +121,18 @@ loop:
 			g.Unlock()
 		}
 	case Peak:
-		if time.Now().After(g.peakUntil) {
+		now := time.Now()
+		if now.After(g.peakUntil) {
 			g.Lock()
 			g.status = Hide
 			g.Unlock()
 		} else {
-			g.Lock()
-			g.eye = EyeLeft + EyeShape(r.Intn(2))
-			g.Unlock()
+			if now.After(g.rollEyeUntil) {
+				g.Lock()
+				g.eye = EyeLeft + EyeShape(r.Intn(2))
+				g.rollEyeUntil = now.Add(time.Duration(r.Intn(500)) * time.Millisecond)
+				g.Unlock()
+			}
 		}
 	default:
 	}

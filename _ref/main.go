@@ -22,6 +22,11 @@ type point struct {
 	x, y int
 }
 
+const (
+	GOPHER_W = 200
+	GOPHER_H = 200
+)
+
 var (
 	images map[string]js.Value
 )
@@ -80,6 +85,21 @@ func main() {
 	js.Global().Call("requestAnimationFrame", renderFrame)
 
 	select {}
+}
+
+func makeGophersAndPositions(cvsW, cvsH int) ([]*Gopher, []point) {
+	n4W, n4H := cvsW/GOPHER_W, cvsH/GOPHER_H
+	gophers := make([]*Gopher, n4W*n4H)
+	positions := make([]point, len(gophers))
+	var i, x, y int
+	for y = 0; y < n4H; y++ {
+		for x = 0; x < n4W; x++ {
+			gophers[i] = new(Gopher)
+			positions[i] = point{x * GOPHER_W, y * GOPHER_H}
+			i += 1
+		}
+	}
+	return gophers, positions
 }
 
 func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {

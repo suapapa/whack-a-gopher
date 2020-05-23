@@ -66,9 +66,9 @@ func (g *Gopher) Status() GopherStatus {
 
 // Start makes a gopher run
 func (g *Gopher) Start(ctx context.Context) {
-	log.Printf("start gopher: %v", g)
+	log.Printf("start gopher: %p", g)
 	defer func() {
-		log.Printf("end gopher: %v", g)
+		log.Printf("end gopher: %p", g)
 	}()
 	go g.updateStatus(ctx)
 	for {
@@ -76,29 +76,25 @@ func (g *Gopher) Start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-g.HeadCh:
-			if g.Status() == Hide {
-				continue
-			}
-			log.Println("ouch!! :%v", g)
-			g.Lock()
-			g.status = Dizzy
-			g.Unlock()
-			g.Eye = EyeX
-			g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
-			continue
-		case <-g.ButtCh:
 			if g.Status() != Hide {
-				continue
+				log.Println("ouch!! :%p", g)
+				g.Lock()
+				g.status = Dizzy
+				g.Unlock()
+				g.Eye = EyeX
+				g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
 			}
-			g.Lock()
-			g.status = Peak
-			g.Unlock()
-			g.Eye = EyeShape(1 + r.Intn(2))
-			g.peakUntil = time.Now().Add(time.Duration(r.Intn(1000))*time.Millisecond + 100*time.Millisecond)
-			continue
+		case <-g.ButtCh:
+			if g.Status() == Hide {
+				g.Lock()
+				g.status = Peak
+				g.Unlock()
+				g.Eye = EyeShape(1 + r.Intn(2))
+				g.peakUntil = time.Now().Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
+			}
 		default:
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
@@ -127,6 +123,6 @@ loop:
 		}
 	default:
 	}
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	goto loop
 }

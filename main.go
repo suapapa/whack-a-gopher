@@ -71,8 +71,7 @@ func main() {
 	defer cancel()
 	gophers, gopherPos := makeGophersAndPositions(ctx, bodyW, bodyH)
 	go func() {
-		for {
-			p := <-mouseClickCh
+		for p := range mouseClickCh {
 			hammerIdx := int(p.x)/GOPHER_W + (int(p.y) / GOPHER_H * n4W)
 			gophers[hammerIdx].HeadCh <- struct{}{}
 		}

@@ -11,6 +11,9 @@ import (
 // EyeShape is position of eye of a gopher
 type EyeShape int
 
+// GopherStatus is status of gopher
+type GopherStatus int
+
 const (
 	// EyeX means dead eye
 	EyeX EyeShape = iota
@@ -18,6 +21,11 @@ const (
 	EyeLeft
 	// EyeRight means look right
 	EyeRight
+
+	// Hide means gopher is in the hole
+	Hide GopherStatus = iota
+	// Peak means gopher peaks
+	Peak
 )
 
 var (
@@ -30,8 +38,9 @@ func init() {
 
 // Gopher reperesent a gopher in a hole
 type Gopher struct {
-	eye  EyeShape
-	head chan struct{}
+	eye    EyeShape
+	head   chan struct{}
+	status GopherStatus
 	sync.RWMutex
 }
 
@@ -50,6 +59,13 @@ func (g *Gopher) Eye() EyeShape {
 	return g.eye
 }
 
+// Status returns currnet status of gopher
+func (g *Gopher) Status() GopherStatus {
+	g.RLock()
+	defer g.RUnlock()
+	return g.status
+}
+
 // Start makes a gopher run
 func (g *Gopher) Start(ctx context.Context) {
 	log.Printf("start gopher: %v", g)
@@ -61,17 +77,35 @@ func (g *Gopher) Start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-g.head:
-			log.Println("ouch!! :%v", g)
-			g.Lock()
-			g.eye = EyeX
-			g.Unlock()
-			time.Sleep(500 * time.Millisecond)
+			if g.Status() == Hide {
+				continue
+			}
+			go g.handelHammered()
 			continue
 		default:
 		}
-		g.Lock()
-		g.eye = EyeShape(1 + r.Intn(2))
-		g.Unlock()
-		time.Sleep(time.Duration(r.Intn(1000)) * time.Millisecond)
+		g.updateStatus()
 	}
+}
+
+func (g *Gopher) updateStatus() {
+	g.Lock()
+	g.status = Hide + GopherStatus(r.Intn(2))
+	g.eye = EyeShape(1 + r.Intn(2))
+	g.Unlock()
+	time.Sleep(time.Duration(r.Intn(1000)) * time.Millisecond)
+}
+
+func (g *Gopher) handelHammered() {
+	if g.Status() == Hide {
+		return
+	}
+	log.Println("ouch!! :%v", g)
+	g.Lock()
+	g.eye = EyeX
+	g.Unlock()
+	time.Sleep(500 * time.Millisecond)
+	g.Lock()
+	g.status = Hide
+	g.Unlock()
 }

@@ -68,16 +68,16 @@ func main() {
 	doc.Call("addEventListener", "click", mouseClickEvt)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	var gophers []*Gopher
-	var gopherPos []point
-	gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
+	defer cancel()
+	gophers, gopherPos := makeGophersAndPositions(ctx, bodyW, bodyH)
 	go func() {
 		for {
 			p := <-mouseClickCh
 			hammerIdx := int(p.x)/GOPHER_W + (int(p.y) / GOPHER_H * n4W)
-			gophers[hammerIdx].head <- struct{}{}
+			gophers[hammerIdx].HeadCh <- struct{}{}
 		}
 	}()
+	go porkGophers(ctx, gophers)
 
 	var renderFrame js.Func
 	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -100,11 +100,9 @@ func main() {
 	})
 	defer renderFrame.Release()
 
-	log.Println("first call of renderFrame")
 	js.Global().Call("requestAnimationFrame", renderFrame)
 
 	select {}
-	cancel()
 }
 
 func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher, []point) {
@@ -126,6 +124,22 @@ func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher
 	return gophers, positions
 }
 
+func porkGophers(ctx context.Context, gophers []*Gopher) {
+porkLoop:
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
+	for _, g := range gophers {
+		if r.Intn(100) < 5 { // this set difficulty
+			g.ButtCh <- struct{}{}
+		}
+	}
+	time.Sleep(100 * time.Millisecond)
+	goto porkLoop
+}
+
 func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {
 	// log.Println("drawGophers: len = ", len(gs))
 	for i, g := range gs {
@@ -140,7 +154,7 @@ func drawGopher(cvsCtx js.Value, p point, g *Gopher) {
 		return
 	}
 	cvsCtx.Call("drawImage", images["gopher_body_normal"], x, y)
-	switch g.Eye() {
+	switch g.Eye {
 	case EyeLeft:
 		cvsCtx.Call("drawImage", images["gopher_doteye"], x-10, y)
 	case EyeRight:

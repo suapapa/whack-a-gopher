@@ -19,7 +19,7 @@ import (
 )
 
 type point struct {
-	x, y int
+	x, y float64
 }
 
 const (
@@ -53,26 +53,24 @@ func main() {
 		images[key].Set("src", "data:image/png;base64,"+loadImage(file))
 	}
 
-	ctx := context.TODO()
-	gophers := make([]*Gopher, 3) // TODO: more gophers
-	gopherPos := make([]point, len(gophers))
-	for i := range gophers {
-		gophers[i] = new(Gopher)
-		gopherPos[i] = point{200 * i, 0}
-		go gophers[i].Start(ctx)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	var gophers []*Gopher
+	var gopherPos []point
+	gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
 
 	var renderFrame js.Func
 	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		// Handle window resizing
+		// // Handle window resizing
 		curBodyW := js.Global().Get("innerWidth").Float() * 0.9
 		curBodyH := js.Global().Get("innerHeight").Float() * 0.9
 		if curBodyW != bodyW || curBodyH != bodyH {
 			bodyW, bodyH = curBodyW, curBodyH
 			cvs.Set("width", bodyW)
 			cvs.Set("height", bodyH)
+			cancel()
+			ctx, cancel = context.WithCancel(context.Background())
+			gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
 		}
-		// cvsCtx.Call("clearRect", 0, 0, bodyW, bodyH)
 
 		drawGophers(cvsCtx, gopherPos, gophers)
 
@@ -85,17 +83,22 @@ func main() {
 	js.Global().Call("requestAnimationFrame", renderFrame)
 
 	select {}
+	cancel()
 }
 
-func makeGophersAndPositions(cvsW, cvsH int) ([]*Gopher, []point) {
-	n4W, n4H := cvsW/GOPHER_W, cvsH/GOPHER_H
+func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher, []point) {
+	n4W, n4H := int(cvsW)/GOPHER_W, int(cvsH)/GOPHER_H
 	gophers := make([]*Gopher, n4W*n4H)
 	positions := make([]point, len(gophers))
 	var i, x, y int
 	for y = 0; y < n4H; y++ {
 		for x = 0; x < n4W; x++ {
 			gophers[i] = new(Gopher)
-			positions[i] = point{x * GOPHER_W, y * GOPHER_H}
+			go gophers[i].Start(ctx)
+			positions[i] = point{
+				x: float64(x * GOPHER_W),
+				y: float64(y * GOPHER_H),
+			}
 			i += 1
 		}
 	}
@@ -103,6 +106,7 @@ func makeGophersAndPositions(cvsW, cvsH int) ([]*Gopher, []point) {
 }
 
 func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {
+	log.Println("drawGophers: len = ", len(gs))
 	for i, g := range gs {
 		drawGopher(cvsCtx, ps[i], g)
 	}

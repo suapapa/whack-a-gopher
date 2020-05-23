@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-// EyePosition is position of eye of a gopher
-type EyePosition int
+// EyeStatus is position of eye of a gopher
+type EyeStatus int
 
 const (
 	// EyeX means dead eye
-	EyeX EyePosition = iota
+	EyeX EyeStatus = iota
 	// EyeLeft means look left
 	EyeLeft
 	// EyeRight means look right
@@ -30,12 +30,12 @@ func init() {
 
 // Gopher reperesent a gopher in a hole
 type Gopher struct {
-	eye EyePosition
+	eye EyeStatus
 	sync.RWMutex
 }
 
 // Eye returns currnet shape of eye
-func (g *Gopher) Eye() EyePosition {
+func (g *Gopher) Eye() EyeStatus {
 	g.RLock()
 	defer g.RUnlock()
 	return g.eye
@@ -55,7 +55,7 @@ func (g *Gopher) Start(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(r.Intn(1000)) * time.Millisecond)
 		g.Lock()
-		g.eye = EyePosition(r.Intn(3))
+		g.eye = EyeStatus(r.Intn(2))
 		g.Unlock()
 	}
 }

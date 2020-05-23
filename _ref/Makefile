@@ -8,9 +8,9 @@ endif
 
 all: main.wasm serve
 
-%.wasm: %.go
+%.wasm: *.go
 	GOOS=js GOARCH=wasm go generate
-	GOOS=js GOARCH=wasm go build -o "$@" "$<"
+	GOOS=js GOARCH=wasm go build -o "$@" *.go
 
 serve:
 	$(BROWSER) 'http://localhost:5000'

@@ -8,7 +8,7 @@
 		  left: 0px;
 	  }
     </style>
-    <script src="wasm_exec.js"></script>
+    <script src="build/wasm_exec.js"></script>
     <script type="text/javascript">
 
 function fetchAndInstantiate(url, importObject) {
@@ -21,7 +21,7 @@ function fetchAndInstantiate(url, importObject) {
   );
 }
 var go = new Go();
-var mod = fetchAndInstantiate("/main.wasm", go.importObject);
+var mod = fetchAndInstantiate("build/main.wasm", go.importObject);
 window.onload = function() {
   mod.then(function(instance) {
     go.run(instance);

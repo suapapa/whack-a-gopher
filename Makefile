@@ -18,14 +18,14 @@ serve:
 
 deploy: main.wasm
 	rm -rf _deploy
-	mkdir -p _deploy
+	mkdir -p _deploy/build
 	cp index.html _deploy/
-	cp wasm_exec.js _deploy/
-	cp main.wasm _deploy/
+	cp wasm_exec.js _deploy/build
+	cp main.wasm _deploy/build
 	cp -r res _deploy/
-	cd _deploy
-	git init . && git add . && git commit -m "deploy"
-	git push -f https://github.com/suapapa/whac-a-gopher master:gh-pages
+	cd _deploy && git init . && git add . && \
+		git commit -m "deploy" && \
+		git push -f https://github.com/suapapa/whac-a-gopher master:gh-pages
 
 clean:
 	rm -f *.wasm

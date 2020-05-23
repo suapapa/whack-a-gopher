@@ -87,9 +87,7 @@ func main() {
 		// 	bodyW, bodyH = curBodyW, curBodyH
 		// 	cvs.Set("width", bodyW)
 		// 	cvs.Set("height", bodyH)
-		// 	cancel()
-		// 	ctx, cancel = context.WithCancel(context.Background())
-		// 	gophers, gopherPos = makeGophersAndPositions(ctx, bodyW, bodyH)
+		// TODO:
 		// }
 
 		drawGophers(cvsCtx, gopherPos, gophers)
@@ -101,7 +99,7 @@ func main() {
 
 	js.Global().Call("requestAnimationFrame", renderFrame)
 
-	select {}
+	waitGophers(gophers)
 }
 
 func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher, []point) {
@@ -112,7 +110,7 @@ func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher
 	for y = 0; y < n4H; y++ {
 		for x = 0; x < n4W; x++ {
 			gophers[i] = NewGopher()
-			go gophers[i].Start(ctx)
+			gophers[i].Start(ctx)
 			positions[i] = point{
 				x: float64(x * GOPHER_W),
 				y: float64(y * GOPHER_H),
@@ -121,6 +119,12 @@ func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher
 		}
 	}
 	return gophers, positions
+}
+
+func waitGophers(gophers []*Gopher) {
+	for _, g := range gophers {
+		g.Wait()
+	}
 }
 
 func porkGophers(ctx context.Context, gophers []*Gopher) {

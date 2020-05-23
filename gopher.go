@@ -44,6 +44,7 @@ type Gopher struct {
 	HeadCh, ButtCh        chan struct{}
 	dizzyUntil, peakUntil time.Time
 	status                GopherStatus
+	wg                    sync.WaitGroup
 	sync.RWMutex          // Lock for status and
 }
 
@@ -57,48 +58,50 @@ func NewGopher() *Gopher {
 	}
 }
 
-// Status returns currnet status of gopher
-func (g *Gopher) Status() GopherStatus {
-	g.RLock()
-	defer g.RUnlock()
-	return g.status
-}
-
 // Start makes a gopher run
 func (g *Gopher) Start(ctx context.Context) {
 	log.Printf("start gopher: %p", g)
-	defer func() {
-		log.Printf("end gopher: %p", g)
-	}()
+	g.wg.Add(2)
+	go g.handleEvent(ctx)
 	go g.updateStatus(ctx)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-g.HeadCh:
-			if g.Status() != Hide {
-				log.Println("ouch!! :%p", g)
-				g.Lock()
-				g.status = Dizzy
-				g.Unlock()
-				g.Eye = EyeX
-				g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
-			}
-		case <-g.ButtCh:
-			if g.Status() == Hide {
-				g.Lock()
-				g.status = Peak
-				g.Unlock()
-				g.Eye = EyeShape(1 + r.Intn(2))
-				g.peakUntil = time.Now().Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
-			}
-		default:
+}
+
+// Wait waits all goroutines are closed
+func (g *Gopher) Wait() {
+	g.wg.Wait()
+}
+
+func (g *Gopher) handleEvent(ctx context.Context) {
+	defer g.wg.Done()
+loop:
+	select {
+	case <-ctx.Done():
+		return
+	case <-g.HeadCh:
+		if g.Status() != Hide {
+			log.Println("ouch!! :%p", g)
+			g.Lock()
+			g.status = Dizzy
+			g.Unlock()
+			g.Eye = EyeX
+			g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
 		}
-		time.Sleep(20 * time.Millisecond)
+	case <-g.ButtCh:
+		if g.Status() == Hide {
+			g.Lock()
+			g.status = Peak
+			g.Unlock()
+			g.Eye = EyeShape(1 + r.Intn(2))
+			g.peakUntil = time.Now().Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
+		}
+	default:
 	}
+	time.Sleep(20 * time.Millisecond)
+	goto loop
 }
 
 func (g *Gopher) updateStatus(ctx context.Context) {
+	defer g.wg.Done()
 loop:
 	select {
 	case <-ctx.Done():
@@ -125,4 +128,11 @@ loop:
 	}
 	time.Sleep(20 * time.Millisecond)
 	goto loop
+}
+
+// Status returns currnet status of gopher
+func (g *Gopher) Status() GopherStatus {
+	g.RLock()
+	defer g.RUnlock()
+	return g.status
 }

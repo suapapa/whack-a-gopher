@@ -5,11 +5,11 @@ package main
 //go:generate cp $GOROOT/misc/wasm/wasm_exec.js .
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -18,28 +18,22 @@ import (
 	"time"
 )
 
+type point struct {
+	x, y int
+}
+
 var (
 	images map[string]js.Value
-	r      *rand.Rand
 )
-
-func init() {
-	// random generator
-	src := rand.NewSource(time.Now().UnixNano())
-	r = rand.New(src)
-}
 
 func main() {
 	doc := js.Global().Get("document")
 	cvs := doc.Call("getElementById", "canvas")
-	// dispW := js.Global().Get("innerWidth").Float() * 0.9
-	// dispH := js.Global().Get("innerHeight").Float() * 0.9
-	// log.Println(dispW, dispH)
 	bodyW := js.Global().Get("innerWidth").Float() * 0.9
 	bodyH := js.Global().Get("innerHeight").Float() * 0.9
 	cvs.Set("width", bodyW)
 	cvs.Set("height", bodyH)
-	ctx := cvs.Call("getContext", "2d")
+	cvsCtx := cvs.Call("getContext", "2d")
 
 	files := []string{
 		"/data/gopher_body_normal.png",
@@ -54,7 +48,15 @@ func main() {
 		images[key].Set("src", "data:image/png;base64,"+loadImage(file))
 	}
 
-	n := 0
+	ctx := context.TODO()
+	gophers := make([]*Gopher, 3) // TODO: more gophers
+	gopherPos := make([]point, len(gophers))
+	for i := range gophers {
+		gophers[i] = new(Gopher)
+		gopherPos[i] = point{200 * i, 0}
+		go gophers[i].Start(ctx)
+	}
+
 	var renderFrame js.Func
 	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// Handle window resizing
@@ -64,14 +66,11 @@ func main() {
 			bodyW, bodyH = curBodyW, curBodyH
 			cvs.Set("width", bodyW)
 			cvs.Set("height", bodyH)
-			log.Println("cvs WxH =", bodyW, bodyH)
 		}
-		ctx.Call("clearRect", 0, 0, bodyW, bodyH)
+		// cvsCtx.Call("clearRect", 0, 0, bodyW, bodyH)
 
-		drawGopher(ctx, n*200, 0)
-		n = 1 - n
+		drawGophers(cvsCtx, gopherPos, gophers)
 
-		log.Println("call of renderFrame")
 		js.Global().Call("requestAnimationFrame", renderFrame)
 		return nil
 	})
@@ -83,13 +82,23 @@ func main() {
 	select {}
 }
 
-func drawGopher(ctx js.Value, x, y int) {
-	ctx.Call("clearRect", x, y, 200, 200)
-	ctx.Call("drawImage", images["gopher_body_normal"], x, y)
-	if r.Intn(2) != 0 {
-		ctx.Call("drawImage", images["gopher_doteye"], x-10, y)
-	} else {
-		ctx.Call("drawImage", images["gopher_doteye"], x+10, y)
+func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {
+	for i, g := range gs {
+		drawGopher(cvsCtx, ps[i], g)
+	}
+}
+
+func drawGopher(cvsCtx js.Value, p point, g *Gopher) {
+	x, y := p.x, p.y
+	cvsCtx.Call("clearRect", x, y, 200, 200)
+	cvsCtx.Call("drawImage", images["gopher_body_normal"], x, y)
+	switch g.Eye() {
+	case EyeLeft:
+		cvsCtx.Call("drawImage", images["gopher_doteye"], x-10, y)
+	case EyeRight:
+		cvsCtx.Call("drawImage", images["gopher_doteye"], x+20, y)
+	default:
+		cvsCtx.Call("drawImage", images["gopher_xeye"], x-5, y)
 	}
 }
 

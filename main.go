@@ -157,7 +157,7 @@ func drawGopher(cvsCtx js.Value, p point, g *Gopher) {
 		return
 	}
 	cvsCtx.Call("drawImage", images["gopher_body_normal"], x, y)
-	switch g.Eye {
+	switch g.Eye() {
 	case EyeLeft:
 		cvsCtx.Call("drawImage", images["gopher_doteye"], x-10, y)
 	case EyeRight:

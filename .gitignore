@@ -1,3 +1,4 @@
 .gitignore
 wasm_exec.js
 main.wasm
+_deploy

@@ -40,18 +40,18 @@ func init() {
 
 // Gopher reperesent a gopher in a hole
 type Gopher struct {
-	Eye                   EyeShape
+	status                GopherStatus
+	eye                   EyeShape
 	HeadCh, ButtCh        chan struct{}
 	dizzyUntil, peakUntil time.Time
-	status                GopherStatus
 	wg                    sync.WaitGroup
-	sync.RWMutex          // Lock for status and
+	sync.RWMutex          // Lock for status and eye
 }
 
 // NewGopher return adress of a Gopher
 func NewGopher() *Gopher {
 	return &Gopher{
-		Eye:    EyeX,
+		eye:    EyeX,
 		HeadCh: make(chan struct{}, 1),
 		ButtCh: make(chan struct{}, 1),
 		status: Hide,
@@ -82,16 +82,16 @@ loop:
 			log.Println("ouch!! :%p", g)
 			g.Lock()
 			g.status = Dizzy
+			g.eye = EyeX
 			g.Unlock()
-			g.Eye = EyeX
 			g.dizzyUntil = time.Now().Add(500 * time.Millisecond)
 		}
 	case <-g.ButtCh:
 		if g.Status() == Hide {
 			g.Lock()
 			g.status = Peak
+			g.eye = EyeShape(1 + r.Intn(2))
 			g.Unlock()
-			g.Eye = EyeShape(1 + r.Intn(2))
 			g.peakUntil = time.Now().Add(time.Duration(r.Intn(2000))*time.Millisecond + 100*time.Millisecond)
 		}
 	default:
@@ -122,12 +122,21 @@ loop:
 			g.status = Hide
 			g.Unlock()
 		} else {
-			g.Eye = EyeLeft + EyeShape(r.Intn(2))
+			g.Lock()
+			g.eye = EyeLeft + EyeShape(r.Intn(2))
+			g.Unlock()
 		}
 	default:
 	}
 	time.Sleep(20 * time.Millisecond)
 	goto loop
+}
+
+// Eye returns currnet shape of eye of gopher
+func (g *Gopher) Eye() EyeShape {
+	g.RLock()
+	defer g.RUnlock()
+	return g.eye
 }
 
 // Status returns currnet status of gopher

@@ -75,7 +75,7 @@ func main() {
 		for {
 			p := <-mouseClickCh
 			hammerIdx := int(p.x)/GOPHER_W + (int(p.y) / GOPHER_H * n4W)
-			log.Printf("mouse click: %v, %d", p, hammerIdx)
+			gophers[hammerIdx].head <- struct{}{}
 		}
 	}()
 
@@ -114,7 +114,7 @@ func makeGophersAndPositions(ctx context.Context, cvsW, cvsH float64) ([]*Gopher
 	var i, x, y int
 	for y = 0; y < n4H; y++ {
 		for x = 0; x < n4W; x++ {
-			gophers[i] = new(Gopher)
+			gophers[i] = NewGopher()
 			go gophers[i].Start(ctx)
 			positions[i] = point{
 				x: float64(x * GOPHER_W),

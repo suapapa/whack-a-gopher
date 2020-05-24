@@ -1,6 +1,6 @@
 # whac-a-gopher: Simple game written in Go
 
-This is an example project for my speak in [devfestW Korea 2013][1]
+This is an example project for my speak in `devfestW Korea 2013`
 which is about Go's power of handling concurrency.
 
 > original source which use SDL1 stored in `topic-sdl1` branch
@@ -8,7 +8,7 @@ which is about Go's power of handling concurrency.
 ![ScreenshotOfTheGame](whac-a-gopher/res/screenshot.png)
 
 * [Live demo](https://suapapa.github.io/whac-a-gopher)
-* [Video(youtube)](http://youtu.be/fqvJWG4cWIg)
+* [Video(youtube)](http://youtu.be/fqvJWG4cWIg) - SDL1 version
 
 ## How to build and run
 
@@ -22,5 +22,3 @@ Buind and run:
 
     make
 
-
-[1]:https://sites.google.com/site/2013devfestwkorea

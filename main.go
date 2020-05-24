@@ -128,19 +128,19 @@ func waitGophers(gophers []*Gopher) {
 }
 
 func porkGophers(ctx context.Context, gophers []*Gopher) {
-porkLoop:
+loop:
 	select {
 	case <-ctx.Done():
 		return
 	default:
 	}
-	for _, g := range gophers {
-		if r.Intn(100) < 5 { // this set difficulty
-			g.ButtCh <- struct{}{}
-		}
+	perm := r.Perm(len(gophers))
+	// MAKES DIFFICULTY : 3 gophers every 1000 ms
+	for i := 0; i < 3; i++ {
+		gophers[perm[i]].ButtCh <- struct{}{}
 	}
-	time.Sleep(100 * time.Millisecond)
-	goto porkLoop
+	time.Sleep(1000 * time.Millisecond)
+	goto loop
 }
 
 func drawGophers(cvsCtx js.Value, ps []point, gs []*Gopher) {

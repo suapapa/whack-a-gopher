@@ -3,9 +3,12 @@
 This is an example project for my speak in [devfestW Korea 2013][1]
 which is about Go's power of handling concurrency.
 
+> original source which use SDL1 stored in `topic-sdl1` branch
+
 ![ScreenshotOfTheGame](whac-a-gopher/res/screenshot.png)
 
-[Video(youtube)](http://youtu.be/fqvJWG4cWIg)
+* [Live demo](https://suapapa.github.io/whac-a-gopher)
+* [Video(youtube)](http://youtu.be/fqvJWG4cWIg)
 
 ## How to build and run
 

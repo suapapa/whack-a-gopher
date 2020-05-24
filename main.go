@@ -43,9 +43,9 @@ func main() {
 	cvsCtx := cvs.Call("getContext", "2d")
 
 	files := []string{
-		"whac-a-gopher/res/gopher_body_normal.png",
-		"whac-a-gopher/res/gopher_doteye.png",
-		"whac-a-gopher/res/gopher_xeye.png",
+		"whack-a-gopher/res/gopher_body_normal.png",
+		"whack-a-gopher/res/gopher_doteye.png",
+		"whack-a-gopher/res/gopher_xeye.png",
 	}
 	images = make(map[string]js.Value)
 	for _, file := range files {

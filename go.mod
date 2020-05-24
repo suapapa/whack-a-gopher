@@ -1,4 +1,4 @@
-module github.com/suapapa/whac-a-gopher
+module github.com/suapapa/whack-a-gopher
 
 go 1.14
 

@@ -13,7 +13,7 @@ all: main.wasm serve
 	GOOS=js GOARCH=wasm go build -o "$@" *.go
 	cp main.wasm build/
 	cp wasm_exec.js build/
-	cp -r whac-a-gopher build/
+	cp -r whack-a-gopher build/
 
 serve:
 	$(BROWSER) 'http://localhost:5000'
@@ -25,10 +25,10 @@ deploy: main.wasm
 	cp index.html _deploy/
 	cp wasm_exec.js _deploy/build
 	cp main.wasm _deploy/build
-	cp -r whac-a-gopher/res _deploy/
+	cp -r whack-a-gopher/res _deploy/
 	cd _deploy && git init . && git add . && \
 		git commit -m "deploy" && \
-		git push -f https://github.com/suapapa/whac-a-gopher master:gh-pages
+		git push -f https://github.com/suapapa/whack-a-gopher master:gh-pages
 
 clean:
 	rm -f *.wasm

@@ -3,16 +3,16 @@
 This is an example project for my speak in `devfestW Korea 2013`
 which is about Go's power of handling concurrency.
 
-> original source which use SDL1 stored in `topic-sdl1` branch
-
 ![ScreenshotOfTheGame](whac-a-gopher/res/screenshot.png)
 
-* [Live demo](https://suapapa.github.io/whac-a-gopher)
+* [Live demo](https://suapapa.github.io/whac-a-gopher) - current WASM version
 * [Video(youtube)](http://youtu.be/fqvJWG4cWIg) - SDL1 version
+
+> old source which use SDL1 stored in `topic-sdl1` branch
 
 ## How to build and run
 
-Tested with `Go 1.14`.
+Tested on `Go 1.14`.
 
 Download:
 
